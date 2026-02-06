@@ -63,13 +63,13 @@ async function sendRequest(
           socket.write(JSON.stringify(request));
         },
         data(socket, data) {
+          buffer += data.toString(); 
           try {
-            const response = JSON.parse(data.toString().trim());
+            const response = JSON.parse(buffer.trim());
             socket.end();
             resolve(response);
-          } catch (err) {
-            socket.end();
-            reject(new Error('Invalid response from daemon'));
+          } catch {
+            // incomplete JSON – wait for more data
           }
         },
         error(socket, error) {
@@ -86,7 +86,7 @@ async function sendRequest(
 
     // Timeout after 5 seconds (fast fallback to direct connection)
     setTimeout(() => {
-      reject(new Error('Daemon request timeout'));
+      reject(new Error('Invalid response from daemon'));
     }, 5000);
   });
 }
